@@ -78,11 +78,16 @@ Website context:
 
 
 
+def answer_question(query):
+    """
+    Complete RAG pipeline for one user question.
 
+    Input:
+        Natural-language question.
 
-
-if __name__ == "__main__":
-    query = "What is the weather in Geelong today?"
+    Output:
+        Answer plus the retrieved source information.
+    """
 
     results = retrieve(query, top_k=3)
 
@@ -93,10 +98,29 @@ if __name__ == "__main__":
         context,
     )
 
-    print("\nQUESTION:")
-    print(query)
+    sources = [
+        {
+            "chunk_id": result["chunk_id"],
+            "metadata": result["metadata"],
+            "similarity": result["similarity"],
+        }
+        for result in results
+    ]
+
+    return {
+        "answer": answer,
+        "sources": sources,
+    }
+
+
+if __name__ == "__main__":
+    result = answer_question(
+        "How do I cook rolled oats?"
+    )
 
     print("\nANSWER:")
-    print(answer)
+    print(result["answer"])
 
-
+    print("\nSOURCES:")
+    for source in result["sources"]:
+        print(source)
