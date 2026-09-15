@@ -1,6 +1,14 @@
-def main():
-    print("Hello from rag-backed!")
+from fastapi import FastAPI
+
+app = FastAPI()
 
 
-if __name__ == "__main__":
-    main()
+@app.get("/health")
+def health():
+    """
+    Simple sanity check.
+
+    Later the same API will expose our RAG chatbot,
+    but for now we only prove that the backend works.
+    """
+    return {"status": "ok"}
