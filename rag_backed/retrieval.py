@@ -4,19 +4,15 @@ from embeddings import get_client, embed_query
 
 def retrieve(query, top_k=5):
     """
-    Input:
-        Natural-language user query.
-
-    Output:
-        Top-K chunks ranked by cosine similarity.
+    Embed a user query and retrieve the Top-K
+    most similar chunks from pgvector.
     """
 
-    # 1. Convert the question into a vector
+    # Query -> 384-dimensional embedding
     hf_client = get_client()
     query_embedding = embed_query(hf_client, query)
 
-    # 2. Ask PostgreSQL/pgvector to compare it
-    #    against our 58 stored document vectors.
+    # Vector similarity search in PostgreSQL
     supabase = get_supabase()
 
     result = supabase.rpc(
@@ -31,25 +27,16 @@ def retrieve(query, top_k=5):
 
 
 if __name__ == "__main__":
-    queries = [
-    # Should be answerable
-    "How do I cook rolled oats?",
-    "What is Day 2 lunch?",
-    "Which rolled oats should I buy?",
-    "How do I boil eggs?",
+    # Optional manual retrieval test.
+    # This will NOT run when rag.py imports retrieve().
+    query = "How do I cook rolled oats?"
 
-    # Should NOT be answerable
-    "What is the weather today?",
-    "Who is the prime minister of Australia?",
-    "How do I install Docker?",
-    "What is the capital of Japan?",
-    ]
+    results = retrieve(query, top_k=3)
 
-for query in queries:
-    result = retrieve(query, top_k=1)[0]
-
-    print(
-        f"{result['similarity']:.4f} | "
-        f"{query} | "
-        f"{result['chunk_id']}"
-    )
+    for rank, result in enumerate(results, start=1):
+        print(
+            f"{rank}. {result['chunk_id']} "
+            f"(similarity={result['similarity']:.4f})"
+        )
+        print(result["content"])
+        print()
