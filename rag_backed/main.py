@@ -1,14 +1,33 @@
 from fastapi import FastAPI
+from pydantic import BaseModel
+
+from rag import answer_question
+
 
 app = FastAPI()
 
 
+class ChatRequest(BaseModel):
+    question: str
+
+
 @app.get("/health")
 def health():
-    """
-    Simple sanity check.
-
-    Later the same API will expose our RAG chatbot,
-    but for now we only prove that the backend works.
-    """
     return {"status": "ok"}
+
+
+@app.post("/chat")
+def chat(request: ChatRequest):
+    """
+    Input:
+        {
+            "question": "How do I cook rolled oats?"
+        }
+
+    Output:
+        {
+            "answer": "...",
+            "sources": [...]
+        }
+    """
+    return answer_question(request.question)
