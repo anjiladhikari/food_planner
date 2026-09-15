@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Navigation from "./components/Navigation.jsx";
 import Footer from "./components/Footer.jsx";
+import RagChat from "./components/RagChat.jsx";
 import Today from "./pages/Today.jsx";
 import Week from "./pages/Week.jsx";
 import Shopping from "./pages/Shopping.jsx";
@@ -238,6 +239,8 @@ function handleTabChange(nextTab) {
       </main>
 
       <Footer />
+
+      <RagChat />
     </div>
   );
 }
