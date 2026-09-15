@@ -34,7 +34,26 @@ def embed_documents(client, chunks):
 
     return embeddings
 
+def embed_query(client, query):
+    """
+    Input:
+        User question.
 
+    Output:
+        One 384-dimensional query embedding.
+    """
+
+    # BGE is trained to distinguish retrieval queries
+    # from document/passages.
+    query_text = (
+        "Represent this sentence for searching relevant passages: "
+        + query
+    )
+
+    return client.feature_extraction(
+        query_text,
+        model=MODEL_NAME,
+    )
 if __name__ == "__main__":
     knowledge = load_public_knowledge()
     chunks = build_all_chunks(knowledge)
