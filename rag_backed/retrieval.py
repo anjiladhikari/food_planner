@@ -31,16 +31,25 @@ def retrieve(query, top_k=5):
 
 
 if __name__ == "__main__":
-    query = "How do I cook rolled oats?"
+    queries = [
+    # Should be answerable
+    "How do I cook rolled oats?",
+    "What is Day 2 lunch?",
+    "Which rolled oats should I buy?",
+    "How do I boil eggs?",
 
-    results = retrieve(query, top_k=5)
+    # Should NOT be answerable
+    "What is the weather today?",
+    "Who is the prime minister of Australia?",
+    "How do I install Docker?",
+    "What is the capital of Japan?",
+    ]
 
-    print(f"\nQuery: {query}\n")
+for query in queries:
+    result = retrieve(query, top_k=1)[0]
 
-    for rank, result in enumerate(results, start=1):
-        print(
-            f"{rank}. {result['chunk_id']} "
-            f"(similarity={result['similarity']:.4f})"
-        )
-        print(result["content"])
-        print()
+    print(
+        f"{result['similarity']:.4f} | "
+        f"{query} | "
+        f"{result['chunk_id']}"
+    )
