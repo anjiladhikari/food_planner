@@ -26,6 +26,45 @@ def build_context(results):
     return "\n\n".join(context_blocks)
 
 
+def handle_simple_chat(query):
+    """
+    Handle messages that do not need retrieval.
+    """
+
+    normalized = query.strip().lower().rstrip("!?.")
+
+    greetings = {
+        "hi",
+        "hello",
+        "hey",
+        "hi there",
+        "hello there",
+    }
+
+    capability_questions = {
+        "what can you do",
+        "what can you help with",
+        "how can you help",
+        "what do you do",
+        "help",
+    }
+
+    if normalized in greetings:
+        return (
+            "Hi! I can help you with the meal plan, "
+            "cooking instructions, and shopping information."
+        )
+
+    if normalized in capability_questions:
+        return (
+            "I can help you with the website's meal plan, including "
+            "what to eat today or tomorrow, cooking instructions, "
+            "and shopping information."
+        )
+
+    return None
+
+
 def generate_answer(query, context):
     """
     Generate an answer using ONLY retrieved website evidence.
@@ -84,13 +123,15 @@ Website context:
 def answer_question(query):
     """
     Complete RAG pipeline for one user question.
-
-    Input:
-        Natural-language question.
-
-    Output:
-        Answer plus the retrieved source information.
     """
+
+    simple_answer = handle_simple_chat(query)
+
+    if simple_answer:
+        return {
+            "answer": simple_answer,
+            "sources": [],
+        }
 
     results = retrieve(query, top_k=3)
 
@@ -117,13 +158,20 @@ def answer_question(query):
 
 
 if __name__ == "__main__":
-    result = answer_question(
-        "What's dinner tonight?"
-    )
+    questions = [
+        "Hi",
+        "What can you do?",
+        "What's dinner tonight?",
+    ]
 
-    print("\nANSWER:")
-    print(result["answer"])
+    for question in questions:
+        print("\nQUESTION:")
+        print(question)
 
-    print("\nSOURCES:")
-    for source in result["sources"]:
-        print(source)
+        result = answer_question(question)
+
+        print("ANSWER:")
+        print(result["answer"])
+
+        print("SOURCES:")
+        print(result["sources"])
