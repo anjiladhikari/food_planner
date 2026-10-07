@@ -48,8 +48,11 @@ export default function Today({ user, onRequireLogin }) {
       )
       .catch(console.error);
   }, [offset]);
+
   function parseFood(line) {
-    const match = line.match(/^(\d+(?:\.\d+)?)\s*(g|ml)?\s*(.+)$/i);
+    const match = line.match(
+      /^(\d+(?:\.\d+)?)\s*(g|ml)?\s*(.+)$/i
+    );
 
     if (!match) return null;
 
@@ -69,19 +72,27 @@ export default function Today({ user, onRequireLogin }) {
       amount,
     };
   }
+
   async function handleComplete(mealType) {
     if (!user) {
       onRequireLogin();
       return;
     }
+
     if (completed.includes(mealType)) return;
 
     try {
       let mealText = "";
 
-      if (mealType === "breakfast") mealText = row[1];
-      if (mealType === "lunch") mealText = row[2];
-      if (mealType === "dinner") mealText = row[3];
+      // row[0] = Day
+      // row[1] = Weekday
+      // row[2] = Breakfast
+      // row[3] = Lunch
+      // row[4] = Dinner
+      // row[5] = Nutrition
+      if (mealType === "breakfast") mealText = row[2];
+      if (mealType === "lunch") mealText = row[3];
+      if (mealType === "dinner") mealText = row[4];
 
       const foods = mealLines(mealText);
 
@@ -106,6 +117,7 @@ export default function Today({ user, onRequireLogin }) {
       console.error(error);
     }
   }
+
   if (loading) {
     return (
       <p className="py-16 text-center text-muted">
@@ -122,11 +134,17 @@ export default function Today({ user, onRequireLogin }) {
     );
   }
 
-  const index = (getTodayIndex() + offset) % rows.length;
+  // getTodayIndex now finds today's row using the Weekday column.
+  const index =
+    (getTodayIndex(rows) + offset) % rows.length;
 
   const row = rows[index];
-  const previousRow = rows[(index - 1 + rows.length) % rows.length];
-  const nextRow = rows[(index + 1) % rows.length];
+
+  const previousRow =
+    rows[(index - 1 + rows.length) % rows.length];
+
+  const nextRow =
+    rows[(index + 1) % rows.length];
 
   return (
     <>
@@ -155,7 +173,9 @@ export default function Today({ user, onRequireLogin }) {
           <span className="group relative inline-flex">
             <button
               type="button"
-              onClick={() => handleComplete("breakfast")}
+              onClick={() =>
+                handleComplete("breakfast")
+              }
               disabled={completed.includes("breakfast")}
               className={
                 MEAL_BUTTON +
@@ -174,7 +194,8 @@ export default function Today({ user, onRequireLogin }) {
                 role="tooltip"
                 className="pointer-events-none absolute left-1/2 top-full z-30 mt-2 hidden w-52 -translate-x-1/2 rounded-lg border border-line bg-surface px-3 py-2 text-[11px] leading-snug text-muted shadow-md shadow-black/30 sm:group-focus-within:block sm:group-hover:block"
               >
-                Have you finished breakfast? Click only after you have eaten it.
+                Have you finished breakfast? Click only
+                after you have eaten it.
               </span>
             )}
           </span>
@@ -182,7 +203,9 @@ export default function Today({ user, onRequireLogin }) {
           <span className="group relative inline-flex">
             <button
               type="button"
-              onClick={() => handleComplete("lunch")}
+              onClick={() =>
+                handleComplete("lunch")
+              }
               disabled={completed.includes("lunch")}
               className={
                 MEAL_BUTTON +
@@ -201,7 +224,8 @@ export default function Today({ user, onRequireLogin }) {
                 role="tooltip"
                 className="pointer-events-none absolute left-1/2 top-full z-30 mt-2 hidden w-52 -translate-x-1/2 rounded-lg border border-line bg-surface px-3 py-2 text-[11px] leading-snug text-muted shadow-md shadow-black/30 sm:group-focus-within:block sm:group-hover:block"
               >
-                Have you finished lunch? Click only after you have eaten it.
+                Have you finished lunch? Click only after
+                you have eaten it.
               </span>
             )}
           </span>
@@ -209,7 +233,9 @@ export default function Today({ user, onRequireLogin }) {
           <span className="group relative inline-flex">
             <button
               type="button"
-              onClick={() => handleComplete("dinner")}
+              onClick={() =>
+                handleComplete("dinner")
+              }
               disabled={completed.includes("dinner")}
               className={
                 MEAL_BUTTON +
@@ -228,7 +254,8 @@ export default function Today({ user, onRequireLogin }) {
                 role="tooltip"
                 className="pointer-events-none absolute left-1/2 top-full z-30 mt-2 hidden w-52 -translate-x-1/2 rounded-lg border border-line bg-surface px-3 py-2 text-[11px] leading-snug text-muted shadow-md shadow-black/30 sm:group-focus-within:block sm:group-hover:block"
               >
-                Have you finished dinner? Click only after you have eaten it.
+                Have you finished dinner? Click only after
+                you have eaten it.
               </span>
             )}
           </span>
@@ -250,27 +277,27 @@ export default function Today({ user, onRequireLogin }) {
           accent="breakfast"
           title="Breakfast"
           time="8–9 AM"
-          items={mealLines(row[1])}
+          items={mealLines(row[2])}
         />
 
         <MealCard
           accent="lunch"
           title="Lunch"
           time="1–3 PM"
-          items={mealLines(row[2])}
+          items={mealLines(row[3])}
         />
 
         <MealCard
           accent="dinner"
           title="Dinner"
           time="6–7 PM"
-          items={mealLines(row[3])}
+          items={mealLines(row[4])}
         />
 
         <MealCard
           accent="nutrition"
           title="Daily Nutrition & Cost"
-          items={mealLines(row[4])}
+          items={mealLines(row[5])}
         />
       </div>
     </>

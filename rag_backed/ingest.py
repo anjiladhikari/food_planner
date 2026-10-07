@@ -1,4 +1,5 @@
 import json
+
 import requests
 
 
@@ -7,16 +8,16 @@ SHEET_ID = "1QwwTSwh7imbzvkHXPvvtZ5awNyf41r_aMnQUsLFivAY"
 
 def fetch_sheet(sheet_name: str):
     """
-    Input:
-        Google Sheet tab name, e.g. "food plan"
+    Fetch one public Google Sheet tab.
 
     Output:
         Raw rows as Python lists.
-
-    At this stage we are NOT cleaning or chunking anything.
     """
 
-    url = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq"
+    url = (
+        f"https://docs.google.com/spreadsheets/d/"
+        f"{SHEET_ID}/gviz/tq"
+    )
 
     response = requests.get(
         url,
@@ -30,8 +31,6 @@ def fetch_sheet(sheet_name: str):
     response.raise_for_status()
 
     # Google wraps the JSON inside JavaScript text.
-    # Instead of assuming an exact character position,
-    # extract the JSON object between the first { and last }.
     text = response.text
     json_text = text[text.find("{"): text.rfind("}") + 1]
 
@@ -44,20 +43,25 @@ def fetch_sheet(sheet_name: str):
             cell.get("v", "") if cell else ""
             for cell in row["c"]
         ]
+
         rows.append(values)
 
     return rows
 
+
 def normalize_food_plan(rows):
     """
-    Input:
-        Raw Google Sheet rows including the header.
+    Convert raw food-plan rows into named fields.
 
-    Output:
-        Structured food-plan records with named fields.
+    Sheet structure:
+        Day
+        Weekday
+        Breakfast
+        Lunch
+        Dinner
+        Nutrition
     """
 
-    # First row contains column names, not actual meal data.
     data_rows = rows[1:]
 
     documents = []
@@ -65,10 +69,11 @@ def normalize_food_plan(rows):
     for row in data_rows:
         document = {
             "day": row[0],
-            "breakfast": row[1],
-            "lunch": row[2],
-            "dinner": row[3],
-            "nutrition_cost": row[4],
+            "weekday": row[1],
+            "breakfast": row[2],
+            "lunch": row[3],
+            "dinner": row[4],
+            "nutrition_cost": row[5],
         }
 
         documents.append(document)
@@ -78,11 +83,7 @@ def normalize_food_plan(rows):
 
 def normalize_shopping(rows):
     """
-    Input:
-        Raw rows from "cooking links and which food"
-
-    Output:
-        Structured shopping records
+    Normalize shopping information.
     """
 
     data_rows = rows[1:]
@@ -104,11 +105,7 @@ def normalize_shopping(rows):
 
 def normalize_cooking(rows):
     """
-    Input:
-        Raw rows from "how to cook"
-
-    Output:
-        Structured cooking records
+    Normalize cooking information.
     """
 
     data_rows = rows[1:]
@@ -127,12 +124,16 @@ def normalize_cooking(rows):
 
     return documents
 
+
 def validate_sheet(rows, expected_header, source_name):
     """
-    Fail early if a Google Sheet no longer has the schema we expect.
+    Fail early if a Google Sheet schema changes unexpectedly.
     """
+
     if not rows:
-        raise ValueError(f"{source_name}: sheet is empty")
+        raise ValueError(
+            f"{source_name}: sheet is empty"
+        )
 
     actual_header = rows[0]
 
@@ -145,14 +146,23 @@ def validate_sheet(rows, expected_header, source_name):
 
 
 def load_public_knowledge():
+    """
+    Fetch, validate and normalize all public knowledge.
+    """
+
     food_plan_rows = fetch_sheet("food plan")
-    shopping_rows = fetch_sheet("cooking links and which food")
+
+    shopping_rows = fetch_sheet(
+        "cooking links and which food"
+    )
+
     cooking_rows = fetch_sheet("how to cook")
 
     validate_sheet(
         food_plan_rows,
         [
             "Day",
+            "Weekday",
             "Breakfast (8–9 AM)",
             "Lunch (1–3 PM)",
             "Dinner (6–7 PM)",
@@ -184,14 +194,35 @@ def load_public_knowledge():
     )
 
     return {
-        "food_plan": normalize_food_plan(food_plan_rows),
-        "shopping": normalize_shopping(shopping_rows),
-        "cooking": normalize_cooking(cooking_rows),
+        "food_plan": normalize_food_plan(
+            food_plan_rows
+        ),
+        "shopping": normalize_shopping(
+            shopping_rows
+        ),
+        "cooking": normalize_cooking(
+            cooking_rows
+        ),
     }
+
 
 if __name__ == "__main__":
     knowledge = load_public_knowledge()
 
-    print("Food plan:", len(knowledge["food_plan"]))
-    print("Shopping:", len(knowledge["shopping"]))
-    print("Cooking:", len(knowledge["cooking"]))
+    print(
+        "Food plan:",
+        len(knowledge["food_plan"]),
+    )
+
+    print(
+        "Shopping:",
+        len(knowledge["shopping"]),
+    )
+
+    print(
+        "Cooking:",
+        len(knowledge["cooking"]),
+    )
+
+    print("\nFirst food-plan record:")
+    print(knowledge["food_plan"][0])
