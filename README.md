@@ -29,7 +29,11 @@ A personal meal-planning web app built around a Google Sheet meal plan.
 The public app provides **Today**, **Week**, **Shopping** and **Cooking**, while authenticated users can also track **Inventory**, **Purchases**, spending and completed meals.
 
 ---
+## AI / RAG Assistant
 
+The Food Planner now includes a grounded website chatbot. A floating **Ask** button on the live app answers meal-plan, shopping and cooking questions using only the site's public knowledge, cites the sources it used, and abstains when the website has no evidence.
+
+It runs as a separate RAG (retrieval-augmented generation) service: Google Sheets → structured chunks → `BAAI/bge-small-en-v1.5` embeddings via Hugging Face → Supabase pgvector → FastAPI on Render → Groq for grounded generation. Private data such as inventory and purchases is intentionally not indexed.
 ## Features
 
 | View | Purpose |
@@ -396,9 +400,13 @@ Local development uses local Supabase through Docker, while the deployed website
 
 ---
 
-## Future
+<div align="center">
 
-The next major feature is a small **RAG / AI assistant** that can work with meal-plan information and structured private data without replacing the existing source-of-truth systems.
+### [ ▶ View Live App ](https://anjiladhikari.github.io/food_planner/)
+
+### [ 📖 Read the full RAG engineering documentation → ](./rag_backed/README.md)
+
+</div>
 
 ---
 

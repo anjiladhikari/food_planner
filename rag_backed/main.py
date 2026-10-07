@@ -1,27 +1,41 @@
 import os
 
 from fastapi import FastAPI, Header, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+
+from rag import answer_question
 from vector_store import sync_index
+
+
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "https://anjiladhikari.github.io",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+class ChatRequest(BaseModel):
+    question: str
 
 
 @app.get("/health")
 def health():
-    """
-    Simple sanity check.
-
-    Later the same API will expose our RAG chatbot,
-    but for now we only prove that the backend works.
-    """
     return {"status": "ok"}
+
 
 @app.post("/reindex")
 def reindex(x_reindex_secret: str = Header(...)):
     """
-    Refresh the public RAG index.
-
-    This endpoint will later be called automatically
-    when the Google Sheet changes.
+    Refresh the public RAG index after the Google Sheet changes.
     """
 
     expected_secret = os.environ["REINDEX_SECRET"]
@@ -38,3 +52,8 @@ def reindex(x_reindex_secret: str = Header(...)):
         "status": "ok",
         "message": "RAG index synchronized",
     }
+
+
+@app.post("/chat")
+def chat(request: ChatRequest):
+    return answer_question(request.question)
