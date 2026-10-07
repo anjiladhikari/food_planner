@@ -2,16 +2,13 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
+
 ENV_PATH = Path(__file__).resolve().parent.parent / ".env.local"
 load_dotenv(ENV_PATH)
 
 from groq import Groq
 
-from retrieval import retrieve
-
-
-ENV_PATH = Path(__file__).resolve().parent.parent / ".env.local"
-load_dotenv(ENV_PATH)
+from retrieval import retrieve, enrich_temporal_query
 
 
 def build_context(results):
@@ -51,11 +48,16 @@ Rules:
 5. Cite supporting evidence using exactly this format: [Source 1], [Source 2].
    Use normal square brackets only.
 6. Keep the answer concise and useful.
+7. Temporal context may be used only to understand words such as
+   today, tonight, or tomorrow. Meal information must still come
+   from the provided website context.
 """
+
+    enriched_query = enrich_temporal_query(query)
 
     user_prompt = f"""
 Question:
-{query}
+{enriched_query}
 
 Website context:
 {context}
@@ -77,7 +79,6 @@ Website context:
     )
 
     return response.choices[0].message.content
-
 
 
 def answer_question(query):
@@ -117,7 +118,7 @@ def answer_question(query):
 
 if __name__ == "__main__":
     result = answer_question(
-        "How do I cook rolled oats?"
+        "What's dinner tonight?"
     )
 
     print("\nANSWER:")
