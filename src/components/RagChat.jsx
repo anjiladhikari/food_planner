@@ -122,7 +122,7 @@ export default function RagChat() {
                   key={index}
                   className={`rag-chat-message ${message.role}`}
                 >
-                  <>
+                  <div className="rag-chat-bubble">
                     <div>{message.text}</div>
 
                     {message.role === "assistant" &&
@@ -142,9 +142,15 @@ export default function RagChat() {
                           ))}
                         </div>
                       )}
-                  </>
+                  </div>
                 </div>
               ))}
+
+              {loading && (
+                <div className="rag-chat-message assistant loading">
+                  <div className="rag-chat-bubble">Thinking…</div>
+                </div>
+              )}
             </div>
           </div>
 
