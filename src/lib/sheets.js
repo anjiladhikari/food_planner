@@ -85,7 +85,9 @@ export function planFoodNames(rows) {
   const names = new Set();
 
   (rows || []).forEach((row) => {
-    [1, 2, 3].forEach((column) => {
+    // Weekday is now row[1].
+    // Meals are breakfast=row[2], lunch=row[3], dinner=row[4].
+    [2, 3, 4].forEach((column) => {
       mealLines(row[column]).forEach((line) => {
         const match = line.match(
           /^(\d+(?:\.\d+)?)\s*(g|ml)?\s*(.+)$/i
@@ -116,11 +118,16 @@ export function planFoodNames(rows) {
   return [...names].sort((a, b) => a.localeCompare(b));
 }
 
-// Monday = Day 1 ... Sunday = Day 7
-export function getTodayIndex() {
-  const day = new Date().getDay();
+// Find today's meal-plan row using the Weekday column in Google Sheets.
+// This keeps the mapping data-driven instead of hardcoding Day 1 = Monday.
+export function getTodayIndex(rows) {
+  const today = getWeekdayName(0).toLowerCase();
 
-  return day === 0 ? 6 : day - 1;
+  const index = (rows || []).findIndex(
+    (row) => String(row[1]).trim().toLowerCase() === today
+  );
+
+  return index >= 0 ? index : 0;
 }
 
 export function getWeekdayName(offset = 0) {
@@ -128,12 +135,19 @@ export function getWeekdayName(offset = 0) {
 
   date.setDate(date.getDate() + offset);
 
-  return date.toLocaleDateString("en-AU", { weekday: "long" });
+  return date.toLocaleDateString("en-AU", {
+    weekday: "long",
+  });
 }
 
 export function dayLabel(offset) {
-  if (offset === 0) return `Today · ${getWeekdayName(0)}`;
-  if (offset === 1) return `Tomorrow · ${getWeekdayName(1)}`;
+  if (offset === 0) {
+    return `Today · ${getWeekdayName(0)}`;
+  }
+
+  if (offset === 1) {
+    return `Tomorrow · ${getWeekdayName(1)}`;
+  }
 
   return getWeekdayName(offset);
 }
