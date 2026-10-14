@@ -26,21 +26,25 @@ export default function RagChat() {
     setLoading(true);
 
     try {
-      const response = await fetch("https://food-planner-iba3.onrender.com/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          question: trimmedQuestion,
-        }),
-      });
+      const response = await fetch(
+        "https://food-planner-iba3.onrender.com/chat",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            question: trimmedQuestion,
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Chat request failed");
       }
 
       const data = await response.json();
+
       // Find which sources the LLM actually cited, e.g. [Source 1]
       const citedNumbers = new Set(
         [...data.answer.matchAll(/\[Source\s+(\d+)\]/g)].map(
@@ -53,7 +57,10 @@ export default function RagChat() {
           ...source,
           sourceNumber: index + 1,
         }))
-        .filter((source) => citedNumbers.has(source.sourceNumber));
+        .filter((source) =>
+          citedNumbers.has(source.sourceNumber)
+        );
+
       setMessages((current) => [
         ...current,
         {
@@ -67,7 +74,8 @@ export default function RagChat() {
         ...current,
         {
           role: "assistant",
-          text: "Sorry, I couldn't reach the assistant.",
+          text:
+            "AI assistant is temporarily unavailable because the free service limit has been reached. It will be back soon.",
         },
       ]);
     } finally {
@@ -81,8 +89,12 @@ export default function RagChat() {
         type="button"
         className="rag-chat-button"
         aria-expanded={open}
-        aria-label={open ? "Close assistant" : "Open assistant"}
-        onClick={() => setOpen((current) => !current)}
+        aria-label={
+          open ? "Close assistant" : "Open assistant"
+        }
+        onClick={() =>
+          setOpen((current) => !current)
+        }
       >
         Ask
       </button>
@@ -111,8 +123,8 @@ export default function RagChat() {
           <div className="rag-chat-body">
             {messages.length === 0 && (
               <p className="rag-chat-intro">
-                Ask me about the meal plan, shopping items, or cooking
-                instructions.
+                Ask me about the meal plan, shopping
+                items, or cooking instructions.
               </p>
             )}
 
@@ -130,16 +142,22 @@ export default function RagChat() {
                         <div className="rag-chat-sources">
                           <strong>Sources</strong>
 
-                          {message.sources.map((source, sourceIndex) => (
-                            <div key={source.chunk_id}>
-                              [{source.sourceNumber}]{" "}
-                              {source.metadata.food_item ||
-                                source.metadata.day ||
-                                source.chunk_id}
-                              {" — "}
-                              {source.metadata.source_type}
-                            </div>
-                          ))}
+                          {message.sources.map(
+                            (source) => (
+                              <div key={source.chunk_id}>
+                                [{source.sourceNumber}]{" "}
+                                {source.metadata
+                                  .food_item ||
+                                  source.metadata.day ||
+                                  source.chunk_id}
+                                {" — "}
+                                {
+                                  source.metadata
+                                    .source_type
+                                }
+                              </div>
+                            )
+                          )}
                         </div>
                       )}
                   </div>
@@ -148,7 +166,9 @@ export default function RagChat() {
 
               {loading && (
                 <div className="rag-chat-message assistant loading">
-                  <div className="rag-chat-bubble">Thinking…</div>
+                  <div className="rag-chat-bubble">
+                    Thinking…
+                  </div>
                 </div>
               )}
             </div>
@@ -159,7 +179,9 @@ export default function RagChat() {
               type="text"
               placeholder="Type a question…"
               value={question}
-              onChange={(event) => setQuestion(event.target.value)}
+              onChange={(event) =>
+                setQuestion(event.target.value)
+              }
             />
 
             <button
